@@ -7,23 +7,43 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
 
 namespace CocktailMakerBackend
 {
     public static class getMachineName
     {
         [FunctionName("getMachineName")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "machine/{id}/name")] HttpRequest req, int id,
-            ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "machine/{id}/name")] HttpRequest req, int id,ILogger log)
         {
-            if(id == 0)
+            string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+            try
             {
-                return new OkObjectResult("alfa 1.0");
+                using (SqlConnection con = new SqlConnection())
+                {
+                    con.ConnectionString = connectionstring;
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand())
+                    {
+                        cmd.Connection = con;
+                        cmd.CommandText = "select model from tbl_machine where ID = @ID;";
+                        cmd.Parameters.AddWithValue("@ID", id);
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                return new OkObjectResult(reader["model"].ToString());
+                            }
+                        }
+                    }
+                }
+                return new OkObjectResult("unidentified");
             }
-            else
+            catch (Exception ex)
             {
-                return new BadRequestObjectResult("no machine with this id");
+                log.LogError(ex + "        --------> Get Name");
+                return new StatusCodeResult(500);
             }
         }
     }
