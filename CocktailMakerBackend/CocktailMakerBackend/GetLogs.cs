@@ -9,14 +9,13 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using CocktailMakerBackend.Models;
-using System.Collections.Generic;
 
 namespace CocktailMakerBackend
 {
-    public static class GetRecipe
+    public static class GetLogs
     {
-        [FunctionName("GetRecipe")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "recipe/{id}")] HttpRequest req, string id, ILogger log)
+        [FunctionName("GetLogs")]
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "logs/{param}")] HttpRequest req, string param, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
@@ -50,45 +49,23 @@ namespace CocktailMakerBackend
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> GetRecipe/check loggin");
+                log.LogError(ex + "        --------> GetLogs/check loggin");
                 return new StatusCodeResult(500);
             }
             try
             {
                 if (loged_in)
                 {
-                    Cocktail c = new Cocktail();
-                    using (SqlConnection con = new SqlConnection())
-                    {
-                        con.ConnectionString = connectionstring;
-                        await con.OpenAsync();
-                        using (SqlCommand cmd = new SqlCommand())
-                        {
-                            cmd.Connection = con;
-                            cmd.CommandText = "select * from tbl_cocktail where ID = @ID;";
-                            cmd.Parameters.AddWithValue("@ID", id);
-                            SqlDataReader reader = await cmd.ExecuteReaderAsync();
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    c.ID = id;
-                                    c.name = reader["name"].ToString();
-                                    c.code = reader["code"].ToString();
-                                }
-                            }
-                        }
-                    }
-                    string r = await c.getRecipe();
-                    return new OkObjectResult("{\"recipe\":\"" + r + "\"}");
+
                 }
                 return new OkObjectResult("{\"result\":\"fail\"}");
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> GetRecipe/get recipe");
+                log.LogError(ex + "        --------> GetLogs/get logs");
                 return new StatusCodeResult(500);
             }
         }
+
     }
 }
