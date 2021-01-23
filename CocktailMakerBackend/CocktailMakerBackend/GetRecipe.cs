@@ -13,10 +13,10 @@ using System.Collections.Generic;
 
 namespace CocktailMakerBackend
 {
-    public static class GetCocktails
+    public static class GetRecipe
     {
-        [FunctionName("GetCocktails")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "cocktails")] HttpRequest req, ILogger log)
+        [FunctionName("GetRecipe")]
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "recipe/{code}")] HttpRequest req, string code, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
@@ -24,11 +24,11 @@ namespace CocktailMakerBackend
             User trial = JsonConvert.DeserializeObject<User>(json);
             try
             {
-                using(SqlConnection con = new SqlConnection())
+                using (SqlConnection con = new SqlConnection())
                 {
                     con.ConnectionString = connectionstring;
                     await con.OpenAsync();
-                    using(SqlCommand cmd = new SqlCommand())
+                    using (SqlCommand cmd = new SqlCommand())
                     {
                         cmd.Connection = con;
                         cmd.CommandText = "select * from tbl_user where ID = @ID";
@@ -50,42 +50,34 @@ namespace CocktailMakerBackend
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> Get Cockatails/check loggin");
+                log.LogError(ex + "        --------> GetRecipe/check loggin");
                 return new StatusCodeResult(500);
             }
-            try
+            if (loged_in)
             {
-                if(loged_in)
+                List<Cocktail> cocktails = new List<Cocktail>();
+                using (SqlConnection con = new SqlConnection())
                 {
-                    List<Cocktail> cocktails = new List<Cocktail>();
-                    using (SqlConnection con = new SqlConnection())
+                    con.ConnectionString = connectionstring;
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand())
                     {
-                        con.ConnectionString = connectionstring;
-                        await con.OpenAsync();
-                        using (SqlCommand cmd = new SqlCommand())
+                        cmd.Connection = con;
+                        cmd.CommandText = "select * from tbl_cocktail;";
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                        while (reader.Read())
                         {
-                            cmd.Connection = con;
-                            cmd.CommandText = "select * from tbl_cocktail;";
-                            SqlDataReader reader = await cmd.ExecuteReaderAsync();
-                            while(reader.Read())
-                            {
-                                Cocktail c = new Cocktail();
-                                c.ID = reader["ID"].ToString();
-                                c.name = reader["name"].ToString();
-                                c.code = reader["code"].ToString();
-                                cocktails.Add(c);
-                            }
+                            Cocktail c = new Cocktail();
+                            c.ID = reader["ID"].ToString();
+                            c.name = reader["name"].ToString();
+                            c.code = reader["code"].ToString();
+                            cocktails.Add(c);
                         }
                     }
-                    return new OkObjectResult(cocktails);
                 }
-                return new OkObjectResult("{\"result\":\"fail\"}");
+                return new OkObjectResult(cocktails);
             }
-            catch (Exception ex)
-            {
-                log.LogError(ex + "        --------> Get Cockatails/get cocktails");
-                return new StatusCodeResult(500);
-            }
+            return new OkObjectResult("{\"result\":\"fail\"}");
         }
     }
 }

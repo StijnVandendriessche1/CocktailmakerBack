@@ -11,9 +11,9 @@ using System.Data.SqlClient;
 
 namespace CocktailMakerBackend
 {
-    public static class getMachineName
+    public static class GetMachineName
     {
-        [FunctionName("getMachineName")]
+        [FunctionName("GetMachineName")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "machine/{id}/name")] HttpRequest req, int id,ILogger log)
         {
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");

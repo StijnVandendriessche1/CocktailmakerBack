@@ -47,6 +47,7 @@ namespace CocktailMakerBackend
                                 if (trial.PasswordHash == user.password)
                                 {
                                     succes = true;
+                                    user.password = null;
                                 }
                             }
                         }
@@ -83,7 +84,8 @@ namespace CocktailMakerBackend
 
         public static String GetTimestamp(DateTime value)
         {
-            return value.ToString("yyyyMMddHHmmssffff");
+            Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            return unixTimestamp.ToString();
         }
     }
 }
