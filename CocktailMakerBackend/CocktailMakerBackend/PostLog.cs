@@ -8,13 +8,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
+using CocktailMakerBackend.Models;
 
 namespace CocktailMakerBackend
 {
-    public static class getMachineName
+    public static class PostLog
     {
-        [FunctionName("GetMachineName")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "machine/{id}/name")] HttpRequest req, int id,ILogger log)
+        [FunctionName("PostLog")]
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logs/add")] HttpRequest req, ILogger log)
         {
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
             try
@@ -22,20 +23,18 @@ namespace CocktailMakerBackend
                 using (SqlConnection con = new SqlConnection())
                 {
                     con.ConnectionString = connectionstring;
+                    string json = await new StreamReader(req.Body).ReadToEndAsync();
+                    Log logrecord = JsonConvert.DeserializeObject<Log>(json);
                     await con.OpenAsync();
                     using (SqlCommand cmd = new SqlCommand())
                     {
                         cmd.Connection = con;
-                        cmd.CommandText = "select model from tbl_machine where ID = @ID;";
-                        cmd.Parameters.AddWithValue("@ID", id);
-                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
-                        if (reader.HasRows)
-                        {
-                            while (reader.Read())
-                            {
-                                return new OkObjectResult(reader["model"].ToString());
-                            }
-                        }
+                        cmd.CommandText = "INSERT INTO cocktailmakerdb.dbo.tbl_logboek (user_id, message, [read], mode) VALUES(@user_id, @message, 0, @mode);";
+                        cmd.Parameters.AddWithValue("@user_id", logrecord.user_id);
+                        cmd.Parameters.AddWithValue("@message", logrecord.message);
+                        cmd.Parameters.AddWithValue("@mode", logrecord.mode);
+                        await cmd.ExecuteNonQueryAsync();
+                        return new OkObjectResult("done");
                     }
                 }
                 return new OkObjectResult("unidentified");
