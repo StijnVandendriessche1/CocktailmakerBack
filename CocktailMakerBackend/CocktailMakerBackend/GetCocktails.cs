@@ -16,7 +16,7 @@ namespace CocktailMakerBackend
     public static class GetCocktails
     {
         [FunctionName("GetCocktails")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "cocktails")] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "cocktails")] HttpRequest req, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");

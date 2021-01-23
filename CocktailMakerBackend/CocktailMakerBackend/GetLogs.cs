@@ -16,7 +16,7 @@ namespace CocktailMakerBackend
     public static class GetLogs
     {
         [FunctionName("GetLogs")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "logs/{param}")] HttpRequest req, string param, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logs/{param}")] HttpRequest req, string param, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");

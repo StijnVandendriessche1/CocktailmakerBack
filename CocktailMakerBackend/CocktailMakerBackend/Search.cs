@@ -16,7 +16,7 @@ namespace CocktailMakerBackend
     public static class Search
     {
         [FunctionName("Search")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/{query}")] HttpRequest req, string query, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "search/{query}")] HttpRequest req, string query, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
