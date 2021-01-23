@@ -72,7 +72,7 @@ namespace CocktailMakerBackend
                         }
                     }
                 }
-                return new OkObjectResult("FAIL");
+                return new OkObjectResult("{'result':'fail'}");
             }
             catch(Exception ex)
             {
