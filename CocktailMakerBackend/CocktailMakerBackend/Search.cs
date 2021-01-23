@@ -7,16 +7,16 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
 using CocktailMakerBackend.Models;
+using System.Data.SqlClient;
 using System.Collections.Generic;
 
 namespace CocktailMakerBackend
 {
-    public static class GetLogs
+    public static class Search
     {
-        [FunctionName("GetLogs")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "logs/{param}")] HttpRequest req, string param, ILogger log)
+        [FunctionName("Search")]
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "search/{query}")] HttpRequest req, string query, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
@@ -50,14 +50,14 @@ namespace CocktailMakerBackend
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> SetRead/check loggin");
+                log.LogError(ex + "        --------> GetLogs/check loggin");
                 return new StatusCodeResult(500);
             }
             try
             {
                 if (loged_in)
                 {
-                    List<Log> logs = new List<Log>();
+                    List<Cocktail> cocktails = new List<Cocktail>();
                     using (SqlConnection con = new SqlConnection())
                     {
                         con.ConnectionString = connectionstring;
@@ -65,43 +65,27 @@ namespace CocktailMakerBackend
                         using (SqlCommand cmd = new SqlCommand())
                         {
                             cmd.Connection = con;
-                            if(param == "all")
-                            {
-                                cmd.CommandText = "select * from tbl_logboek where user_id = @ID;";
-                            }
-                            else if(param == "new")
-                            {
-                                cmd.CommandText = "select * from tbl_logboek where user_id = @ID and [read] = 0;";
-                            }
-                            else
-                            {
-                                return new OkObjectResult("{\"result\":\"fail\"}");
-                            }
-                            cmd.Parameters.AddWithValue("@ID", trial.ID);
+                            cmd.CommandText = String.Format("SELECT * FROM tbl_cocktail where name like '%{0}%';", query);
                             SqlDataReader reader = await cmd.ExecuteReaderAsync();
-                            if (reader.HasRows)
+                            while (reader.Read())
                             {
-                                while (reader.Read())
-                                {
-                                    Log l = new Log();
-                                    l.ID = reader["ID"].ToString();
-                                    l.message = reader["message"].ToString();
-                                    l.mode = reader["mode"].ToString();
-                                    logs.Add(l);
-                                }
+                                Cocktail c = new Cocktail();
+                                c.ID = reader["ID"].ToString();
+                                c.name = reader["name"].ToString();
+                                c.code = reader["code"].ToString();
+                                cocktails.Add(c);
                             }
                         }
                     }
-                    return new OkObjectResult(logs);
+                    return new OkObjectResult(cocktails);
                 }
                 return new OkObjectResult("{\"result\":\"fail\"}");
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> SetRead/set read");
+                log.LogError(ex + "        --------> GetLogs/get logs");
                 return new StatusCodeResult(500);
             }
         }
-
     }
 }
