@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using CocktailMakerBackend.Models;
+using System.Collections.Generic;
 
 namespace CocktailMakerBackend
 {
@@ -56,7 +57,42 @@ namespace CocktailMakerBackend
             {
                 if (loged_in)
                 {
-
+                    List<Log> logs = new List<Log>();
+                    using (SqlConnection con = new SqlConnection())
+                    {
+                        con.ConnectionString = connectionstring;
+                        await con.OpenAsync();
+                        using (SqlCommand cmd = new SqlCommand())
+                        {
+                            cmd.Connection = con;
+                            if(param == "all")
+                            {
+                                cmd.CommandText = "select * from tbl_logboek where user_id = @ID;";
+                            }
+                            else if(param == "new")
+                            {
+                                cmd.CommandText = "select * from tbl_logboek where user_id = @ID and [read] = 0;";
+                            }
+                            else
+                            {
+                                return new OkObjectResult("{\"result\":\"fail\"}");
+                            }
+                            cmd.Parameters.AddWithValue("@ID", trial.ID);
+                            SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Log l = new Log();
+                                    l.ID = reader["ID"].ToString();
+                                    l.message = reader["message"].ToString();
+                                    l.mode = reader["mode"].ToString();
+                                    logs.Add(l);
+                                }
+                            }
+                        }
+                    }
+                    return new OkObjectResult(logs);
                 }
                 return new OkObjectResult("{\"result\":\"fail\"}");
             }
