@@ -82,9 +82,8 @@ namespace CocktailMakerBackend
                     }
                     JsonSerializer j = new JsonSerializer();
                     string r = await c.getRecipe();
-                    string data = "{'id':" + c.ID + ",'recipe':'" + r + "'}";
-                    string js = JsonConvert.SerializeObject(data);
-                    return new OkObjectResult(js);
+                    string data = "{\"id\":\"" + c.ID + "\",\"recipe\":\"" + r + "\"}";
+                    return new OkObjectResult(data);
                 }
                 return new OkObjectResult("{\"result\":\"fail\"}");
             }

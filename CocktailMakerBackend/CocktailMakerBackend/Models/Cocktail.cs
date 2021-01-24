@@ -28,7 +28,7 @@ namespace CocktailMakerBackend.Models
                 foreach(string[] j in i)
                 {
                     string n = await getDrink(Convert.ToInt32(j[0]));
-                    recipe += String.Format("{0} parts of {1}\n", j[1], n);
+                    recipe += String.Format("{0} parts of {1},", j[1], n);
                 }
             }
             return recipe;
