@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Data.SqlClient;
 using CocktailMakerBackend.Models;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace CocktailMakerBackend
 {
@@ -79,8 +80,11 @@ namespace CocktailMakerBackend
                             }
                         }
                     }
+                    JsonSerializer j = new JsonSerializer();
                     string r = await c.getRecipe();
-                    return new OkObjectResult("{\"recipe\":\"" + r + "\"}");
+                    string data = "{'id':" + c.ID + ",'recipe':'" + r + "'}";
+                    string js = JsonConvert.SerializeObject(data);
+                    return new OkObjectResult(js);
                 }
                 return new OkObjectResult("{\"result\":\"fail\"}");
             }
