@@ -15,7 +15,7 @@ namespace CocktailMakerBackend
     public static class SetLogsRead
     {
         [FunctionName("SetLogsRead")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "logs/setread")] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "read/logs")] HttpRequest req, ILogger log)
         {
             bool loged_in = false;
             string connectionstring = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
@@ -49,7 +49,7 @@ namespace CocktailMakerBackend
             }
             catch (Exception ex)
             {
-                log.LogError(ex + "        --------> Get Cockatails/check loggin");
+                log.LogError(ex + "        --------> Set read/check loggin");
                 return new StatusCodeResult(500);
             }
             try
