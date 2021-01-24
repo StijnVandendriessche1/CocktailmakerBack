@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using CocktailMakerBackend.Models;
+using Microsoft.Azure.Devices;
+using System.Collections.Generic;
 
 namespace CocktailMakerBackend
 {
@@ -74,13 +76,43 @@ namespace CocktailMakerBackend
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
-                    return new OkObjectResult("{\"result\":\"succes\"}");
                 }
-                return new OkObjectResult("{\"result\":\"fail\"}");
+                else
+                {
+                    return new OkObjectResult("{\"result\":\"fail\"}");
+                }
             }
             catch (Exception ex)
             {
                 log.LogError(ex + "        --------> Get Cockatails/get cocktails");
+                return new StatusCodeResult(500);
+            }
+            try
+            {
+                if (!String.IsNullOrEmpty(trial.machine_id))
+                {
+                    ServiceClient sCli;
+                    string iotconstr = Environment.GetEnvironmentVariable("IOTHubMainConnectionstring");
+                    sCli = ServiceClient.CreateFromConnectionString(iotconstr);
+                    CloudToDeviceMethod method = new CloudToDeviceMethod("name");
+                    Dictionary<string, string> msg = new Dictionary<string, string>
+                    {
+                        { "name", name }
+                    };
+                    string data = JsonConvert.SerializeObject(msg, Formatting.Indented);
+                    method.SetPayloadJson(data);
+                    CloudToDeviceMethodResult r = await sCli.InvokeDeviceMethodAsync("testpi", method);
+                    log.LogInformation(r.GetPayloadAsJson());
+                    return new OkObjectResult("{\"result\":\"succes\"}");
+                }
+                else
+                {
+                    return new OkObjectResult("{\"result\":\"no machine\"}");
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex + "        --------> MakeCocktail/send DirectMethod");
                 return new StatusCodeResult(500);
             }
         }
